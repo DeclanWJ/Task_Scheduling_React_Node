@@ -9,7 +9,7 @@ app.use(cors())
 app.use(express.json());
 
 // API Routes
-app.get('/api/task', (req, res) => {
+app.get('/api/message', (req, res) => {
     res.json({text: 'Node.js backend'});
 });
 
