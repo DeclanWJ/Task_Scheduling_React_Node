@@ -5,3 +5,9 @@ Goal :
   Ensuring that I am getting practice on coding standards like linting, code review, merging, etc. Keeping track of notes and progress.
   I also decided to just create a basic task scheduling app. This way, I can get experience creating database models, and storing timed tasks.
   
+RoadMap : 
+  1. Create a better task scheduling landing page.
+  2. Create task model , and database integration. Start creating tasks and displaying information.
+  3. Which means a task creation/update/etc. button will need to be created.
+  4. Along with a page to put in information, etc. Possibly a popup vs actual web page.
+  5. Once task creation is set, display tasks based on time + date.
