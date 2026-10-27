@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
@@ -11,15 +11,20 @@ function App() {
     // Fetch from Express Backend
     fetch('http://localhost:5000/api/message')
       .then((res) => res.json())
-      .then((data) => setMessage(data.text))
-      .catch((err) => consol.error('Error fetching data:', err));
+      .then((data) => {
+        console.log('Data Recieved', data);
+        setMessage(data.text);
+      })
+      .catch((err) => console.error('Error fetching data:', err));
   }, []);
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
       <h1>React & Node.js Integration App</h1>
       <p>Message from server:</p>
-      <h3 style={{ color: '#646cff' }}>{message || 'Loading...'}</h3>
+      <h3 style={{ color: '#646cff' }}>
+        {message || 'Loading...'}
+      </h3>
     </div>
   );
 }

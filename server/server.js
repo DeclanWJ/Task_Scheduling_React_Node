@@ -10,9 +10,9 @@ app.use(express.json());
 
 // API Routes
 app.get('/api/message', (req, res) => {
-    res.json({text: 'Node.js backend'});
+    res.json({text: 'INFORMATION'});
 });
 
 app.listen(PORT, () =>{
-    console.log('Server is running on port ${PORT}');
+    console.log(`Server is running on port ${PORT}`);
 });
