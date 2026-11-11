@@ -164,9 +164,9 @@ function App() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <a className="brand" href="/" aria-label="Daymark home">
-          <span className="brand-mark" aria-hidden="true">d</span>
-          <span>daymark</span>
+        <a className="brand" href="/" aria-label="DJ's Tasks home">
+          <span className="brand-mark" aria-hidden="true">DJ</span>
+          <span>DJ's Tasks</span>
         </a>
         <button className="button button-primary" onClick={startNewTask}>
           <span aria-hidden="true">+</span> Add task
