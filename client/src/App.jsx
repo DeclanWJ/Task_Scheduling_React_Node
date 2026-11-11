@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
+import Navbar from './components/navbar.jsx'
 import './App.css'
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
 
   return (
     <div style={{ textAlign: 'center', marginTop: '50px' }}>
+      <Navbar />
       <h1>React & Node.js Integration App</h1>
       <p>Message from server:</p>
       <h3 style={{ color: '#646cff' }}>
