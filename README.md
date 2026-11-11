@@ -1,4 +1,4 @@
-# DJ's Tasks
+# DJ's Tasks - AI Assisted
 
 A React calendar and Express API for planning tasks by day. The first version uses PostgreSQL and is designed so tasks belong to a user, while sign-in and multi-user support remain future work.
 
