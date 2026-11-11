@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: task_scheduler
+      POSTGRES_USER: tasks
+      POSTGRES_PASSWORD: tasks
+    ports:
+      - "5432:5432"
+    volumes:
+      - task_scheduler_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tasks -d task_scheduler"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  task_scheduler_data:
