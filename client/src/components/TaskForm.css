@@ -1,0 +1,108 @@
+.task-form {
+  margin: 20px 28px 0;
+  padding: 22px;
+  display: grid;
+  gap: 16px;
+  border: 1px solid #e3e7df;
+  border-radius: 10px;
+  background: #fbfcfa;
+}
+
+.form-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-heading .eyebrow {
+  margin-bottom: 4px;
+  font-size: 9px;
+}
+
+.form-heading h3,
+.empty-state h3 {
+  margin: 0;
+  color: #333a31;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 21px;
+  font-weight: 500;
+}
+
+.close-button {
+  font-size: 22px;
+}
+
+.task-form label {
+  display: grid;
+  gap: 6px;
+  color: #555d51;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.task-form input,
+.task-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 11px;
+  border: 1px solid #dfe3da;
+  border-radius: 6px;
+  color: #333a31;
+  background: #fff;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.task-form input:focus,
+.task-form textarea:focus {
+  outline: 2px solid rgba(97, 116, 91, 0.24);
+  border-color: #81917a;
+}
+
+.task-form textarea {
+  resize: vertical;
+}
+
+.optional-label {
+  color: #92958d;
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.time-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.form-actions .button-danger {
+  margin-right: auto;
+}
+
+@media (max-width: 600px) {
+  .task-form {
+    margin: 14px 14px 0;
+    padding: 16px;
+  }
+
+  .time-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-wrap: wrap;
+  }
+
+  .form-actions .button-danger {
+    flex-basis: 100%;
+    margin-right: 0;
+  }
+}
