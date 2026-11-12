@@ -4,11 +4,11 @@ A React calendar and Express API for planning tasks by day. The first version us
 
 ## What works today
 
-- Daily schedule with previous/next day navigation and a jump-to-today control
+- Day, Monday-start week, and month calendar views with period navigation and a jump-to-today control
 - Create, edit, complete, and delete scheduled tasks
 - Task title, optional notes, start time, and end time
 - PostgreSQL storage through an Express API
-- A user relationship on each task, ready for authentication to be added later
+- A user relationship on each task, ready for authentication to be added late
 
 The current local setup seeds one `Local User` and assigns all requests to that account. There is no login yet, so this is a single-user development app rather than a multi-user deployment.
 
@@ -42,7 +42,7 @@ These are design notes for the current page rather than a formal design system. 
 2. Configure and migrate the API:
 
    ```sh
-   cd server
+   cd serve
    cp .env.example .env
    npm install
    npm run db:migrate
@@ -66,6 +66,7 @@ These are design notes for the current page rather than a formal design system. 
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/api/tasks?date=YYYY-MM-DD` | List tasks overlapping a calendar day |
+| `GET` | `/api/tasks?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD` | List tasks overlapping an inclusive date range |
 | `POST` | `/api/tasks` | Create a task |
 | `PUT` | `/api/tasks/:id` | Update a task's details and time |
 | `PATCH` | `/api/tasks/:id` | Change its `completed` status |
@@ -82,19 +83,25 @@ To stop PostgreSQL while retaining local task data, run `docker compose down`. T
 ## Checks
 
 ```sh
-cd server
+cd serve
 npm test
+```
+
+With PostgreSQL running and migrations applied:
+
+```sh
+cd serve
+npm run test:integration
 ```
 
 ```sh
 cd client
+npm test
 npm run lint
 npm run build
 ```
 
 ## Next steps
 
-1. Verify the app against a local PostgreSQL instance and add API/database integration tests.
-2. Add weekly and monthly calendar views.
-3. Add authentication and ensure each signed-in user can access only their own tasks.
-4. Choose a hosting setup and deploy the app.
+1. Add authentication and ensure each signed-in user can access only their own tasks.
+2. Choose a hosting setup and deploy the app.

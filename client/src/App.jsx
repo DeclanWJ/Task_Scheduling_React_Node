@@ -3,24 +3,34 @@ import {
   createTask,
   deleteTask as removeTask,
   getTasks,
+  getTasksInRange,
   setTaskCompleted,
   updateTask,
 } from './api/tasks.js'
 import AppHeader from './components/AppHeader.jsx'
 import CalendarToolbar from './components/CalendarToolbar.jsx'
+import MonthView from './components/MonthView.jsx'
 import Schedule from './components/Schedule.jsx'
 import TaskForm from './components/TaskForm.jsx'
 import WelcomeSection from './components/WelcomeSection.jsx'
+import WeekView from './components/WeekView.jsx'
+import { addDays, addMonths, getMonthGridDates, getWeekDates, toDateKey } from './utils/calendar.js'
 import './App.css'
 
-const pad = (value) => String(value).padStart(2, '0')
-
-function toDateKey(date) {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+function datesForView(date, viewMode) {
+  if (viewMode === 'week') {
+    return getWeekDates(date)
+  }
+  if (viewMode === 'month') {
+    return getMonthGridDates(date)
+  }
+  return [date]
 }
 
 function App() {
   const [selectedDate, setSelectedDate] = useState(() => new Date())
+  const [todayKey] = useState(() => toDateKey(new Date()))
+  const [viewMode, setViewMode] = useState('day')
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -28,21 +38,52 @@ function App() {
   const [saving, setSaving] = useState(false)
 
   const dateKey = toDateKey(selectedDate)
+  const periodDates = useMemo(
+    () => datesForView(selectedDate, viewMode),
+    [selectedDate, viewMode],
+  )
+  const rangeStart = toDateKey(periodDates[0])
+  const rangeEnd = toDateKey(periodDates[periodDates.length - 1])
   const dateLabel = useMemo(
-    () =>
-      new Intl.DateTimeFormat(undefined, {
+    () => {
+      if (viewMode === 'month') {
+        return new Intl.DateTimeFormat(undefined, {
+          month: 'long',
+          year: 'numeric',
+        }).format(selectedDate)
+      }
+
+      if (viewMode === 'week') {
+        const start = new Intl.DateTimeFormat(undefined, {
+          month: 'short',
+          day: 'numeric',
+        }).format(periodDates[0])
+        const end = new Intl.DateTimeFormat(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        }).format(periodDates[6])
+        return `${start} – ${end}`
+      }
+
+      return new Intl.DateTimeFormat(undefined, {
         weekday: 'long',
         month: 'long',
         day: 'numeric',
         year: 'numeric',
-      }).format(selectedDate),
-    [selectedDate],
+      }).format(selectedDate)
+    },
+    [periodDates, selectedDate, viewMode],
   )
 
   useEffect(() => {
     const controller = new AbortController()
+    const taskRequest =
+      viewMode === 'day'
+        ? getTasks(rangeStart, { signal: controller.signal })
+        : getTasksInRange(rangeStart, rangeEnd, { signal: controller.signal })
 
-    getTasks(dateKey, { signal: controller.signal })
+    taskRequest
       .then(setTasks)
       .catch((loadError) => {
         if (loadError.name !== 'AbortError') {
@@ -56,24 +97,39 @@ function App() {
       })
 
     return () => controller.abort()
-  }, [dateKey])
+  }, [rangeEnd, rangeStart, viewMode])
 
   const completedCount = tasks.filter((task) => task.completed).length
 
-  function moveDate(days) {
-    setLoading(true)
+  function selectDate(date, nextViewMode = viewMode) {
+    const nextPeriodDates = datesForView(date, nextViewMode)
+    const nextRangeStart = toDateKey(nextPeriodDates[0])
+    const nextRangeEnd = toDateKey(nextPeriodDates[nextPeriodDates.length - 1])
+
+    if (
+      nextViewMode !== viewMode ||
+      nextRangeStart !== rangeStart ||
+      nextRangeEnd !== rangeEnd
+    ) {
+      setLoading(true)
+    }
     setError('')
-    setSelectedDate((current) => {
-      const next = new Date(current)
-      next.setDate(next.getDate() + days)
-      return next
-    })
+    setSelectedDate(date)
+    setViewMode(nextViewMode)
+  }
+
+  function movePeriod(direction) {
+    const nextDate =
+      viewMode === 'day'
+        ? addDays(selectedDate, direction)
+        : viewMode === 'week'
+          ? addDays(selectedDate, direction * 7)
+          : addMonths(selectedDate, direction)
+    selectDate(nextDate)
   }
 
   function goToToday() {
-    setLoading(true)
-    setError('')
-    setSelectedDate(new Date())
+    selectDate(new Date())
   }
 
   function startNewTask() {
@@ -86,7 +142,10 @@ function App() {
   }
 
   async function reloadTasks() {
-    const updatedTasks = await getTasks(dateKey)
+    const updatedTasks =
+      viewMode === 'day'
+        ? await getTasks(dateKey)
+        : await getTasksInRange(rangeStart, rangeEnd)
     setTasks(updatedTasks)
   }
 
@@ -150,12 +209,14 @@ function App() {
       <AppHeader onAddTask={startNewTask} />
       <main className="main-content">
         <WelcomeSection />
-        <section className="calendar-card" aria-label="Daily schedule">
+        <section className="calendar-card" aria-label="Calendar schedule">
           <CalendarToolbar
             dateLabel={dateLabel}
+            viewMode={viewMode}
+            onViewModeChange={(nextViewMode) => selectDate(selectedDate, nextViewMode)}
             onToday={goToToday}
-            onPrevious={() => moveDate(-1)}
-            onNext={() => moveDate(1)}
+            onPrevious={() => movePeriod(-1)}
+            onNext={() => movePeriod(1)}
           />
           <div className="day-summary">
             <span>{tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} planned</span>
@@ -171,14 +232,40 @@ function App() {
               onClose={() => setEditingTask(null)}
             />
           )}
-          <Schedule
-            tasks={tasks}
-            dateKey={dateKey}
-            loading={loading}
-            onCreate={startNewTask}
-            onToggle={toggleTask}
-            onEdit={setEditingTask}
-          />
+          {viewMode === 'day' && (
+            <Schedule
+              tasks={tasks}
+              dateKey={dateKey}
+              loading={loading}
+              onCreate={startNewTask}
+              onToggle={toggleTask}
+              onEdit={setEditingTask}
+            />
+          )}
+          {viewMode === 'week' && !loading && (
+            <WeekView
+              dates={periodDates}
+              tasks={tasks}
+              selectedDate={selectedDate}
+              onSelectDate={(date) => selectDate(date, 'day')}
+              onToggle={toggleTask}
+              onEdit={setEditingTask}
+            />
+          )}
+          {viewMode === 'month' && !loading && (
+            <MonthView
+              date={selectedDate}
+              selectedDate={selectedDate}
+              todayKey={todayKey}
+              tasks={tasks}
+              onSelectDate={selectDate}
+              onToggle={toggleTask}
+              onEdit={setEditingTask}
+            />
+          )}
+          {viewMode !== 'day' && loading && (
+            <p className="period-loading">Loading your schedule…</p>
+          )}
         </section>
         <footer className="page-footer">Small steps make a meaningful day.</footer>
       </main>

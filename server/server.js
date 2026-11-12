@@ -23,19 +23,38 @@ app.get('/api/health', async (req, res) => {
 });
 
 app.get('/api/tasks', async (req, res) => {
-  const { date } = req.query;
-  if (!isValidDateOnly(date)) {
-    return res.status(400).json({ error: 'A valid date (YYYY-MM-DD) is required.' });
+  const { date, startDate, endDate } = req.query;
+  let rangeStart;
+  let rangeEnd;
+
+  if (typeof date !== 'undefined') {
+    if (!isValidDateOnly(date)) {
+      return res.status(400).json({ error: 'A valid date (YYYY-MM-DD) is required.' });
+    }
+
+    rangeStart = date;
+    rangeEnd = date;
+  } else if (
+    isValidDateOnly(startDate) &&
+    isValidDateOnly(endDate) &&
+    startDate <= endDate
+  ) {
+    rangeStart = startDate;
+    rangeEnd = endDate;
+  } else {
+    return res.status(400).json({
+      error: 'A valid start and end date are required.',
+    });
   }
 
   const result = await query(
     `SELECT id, title, description, starts_at, ends_at, completed, created_at, updated_at
      FROM tasks
      WHERE user_id = $1
-       AND starts_at < $2::date + INTERVAL '1 day'
+       AND starts_at < $3::date + INTERVAL '1 day'
        AND ends_at > $2::date
      ORDER BY starts_at`,
-    [DEFAULT_USER_ID, date],
+    [DEFAULT_USER_ID, rangeStart, rangeEnd],
   );
 
   res.json(result.rows);

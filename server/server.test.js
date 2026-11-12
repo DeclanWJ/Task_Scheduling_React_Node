@@ -22,6 +22,22 @@ test('rejects invalid calendar dates without querying the database', async (t) =
   });
 });
 
+test('rejects invalid or reversed task date ranges without querying the database', async (t) => {
+  const baseUrl = await startServer(t);
+
+  for (const range of [
+    'startDate=2026-02-30&endDate=2026-03-02',
+    'startDate=2026-03-02&endDate=2026-03-01',
+  ]) {
+    const response = await fetch(`${baseUrl}/api/tasks?${range}`);
+
+    assert.equal(response.status, 400);
+    assert.deepEqual(await response.json(), {
+      error: 'A valid start and end date are required.',
+    });
+  }
+});
+
 test('rejects malformed task details without querying the database', async (t) => {
   const baseUrl = await startServer(t);
   const response = await fetch(`${baseUrl}/api/tasks`, {

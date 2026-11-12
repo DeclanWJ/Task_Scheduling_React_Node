@@ -1,0 +1,82 @@
+.week-scroll {
+  overflow-x: auto;
+  padding: 11px 28px 25px;
+}
+
+.week-grid {
+  min-width: 1000px;
+}
+
+.week-grid,
+.week-row {
+  display: grid;
+  grid-template-columns: 72px repeat(7, minmax(125px, 1fr));
+}
+
+.week-corner,
+.week-date,
+.week-hour,
+.week-slot {
+  border-bottom: 1px solid #efeee9;
+  border-right: 1px solid #efeee9;
+}
+
+.week-corner {
+  min-height: 52px;
+}
+
+.week-date {
+  padding: 8px;
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  border-top: 0;
+  border-left: 0;
+  color: #788073;
+  background: #fff;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.week-date strong {
+  color: #354032;
+  font-size: 15px;
+}
+
+.week-date.is-selected strong {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #61745b;
+}
+
+.week-row {
+  grid-column: 1 / -1;
+  min-height: 66px;
+}
+
+.week-hour {
+  padding: 10px 6px 0 0;
+  color: #9a9c94;
+  font-size: 11px;
+  text-align: right;
+}
+
+.week-slot {
+  min-width: 0;
+  padding: 5px;
+}
+
+.week-slot .task-item {
+  padding-right: 6px;
+  padding-left: 7px;
+}
+
+@media (max-width: 600px) {
+  .week-scroll {
+    padding: 8px 14px 18px;
+  }
+}

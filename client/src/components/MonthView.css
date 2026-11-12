@@ -1,0 +1,95 @@
+.month-scroll {
+  overflow-x: auto;
+  padding: 11px 28px 25px;
+}
+
+.month-grid {
+  min-width: 760px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(100px, 1fr));
+}
+
+.month-weekday {
+  padding: 8px;
+  border-bottom: 1px solid #efeee9;
+  color: #85877f;
+  font-size: 11px;
+  font-weight: 650;
+  text-align: center;
+}
+
+.month-cell {
+  min-height: 145px;
+  padding: 6px;
+  border-right: 1px solid #efeee9;
+  border-bottom: 1px solid #efeee9;
+}
+
+.month-cell:nth-child(7n + 7) {
+  border-right: 0;
+}
+
+.month-cell.is-outside-month {
+  background: #fafaf8;
+}
+
+.month-date {
+  width: 27px;
+  height: 27px;
+  margin-bottom: 5px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #454b43;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.is-outside-month .month-date {
+  color: #a9aca5;
+}
+
+.month-date.is-today {
+  outline: 1px solid #83947b;
+}
+
+.month-date.is-selected {
+  color: #fff;
+  background: #61745b;
+}
+
+.month-events {
+  display: grid;
+  gap: 2px;
+}
+
+.month-events .task-item {
+  min-height: 0;
+  margin-bottom: 0;
+  padding: 4px 5px;
+  gap: 5px;
+}
+
+.month-events .task-details {
+  overflow: hidden;
+}
+
+.month-events .task-title {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.month-more {
+  padding-left: 4px;
+  color: #7d8778;
+  font-size: 10px;
+}
+
+@media (max-width: 600px) {
+  .month-scroll {
+    padding: 8px 14px 18px;
+  }
+}

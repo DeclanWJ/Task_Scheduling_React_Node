@@ -31,6 +31,38 @@
   gap: 8px;
 }
 
+.calendar-actions {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+}
+
+.view-switcher {
+  padding: 3px;
+  display: flex;
+  gap: 2px;
+  border-radius: 8px;
+  background: #f3f3ef;
+}
+
+.view-option {
+  min-width: 56px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 6px;
+  color: #62685e;
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.view-option.is-selected {
+  color: #354032;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(49, 48, 37, 0.1);
+}
+
 .today-button {
   min-height: 36px;
   margin-right: 5px;
@@ -41,10 +73,19 @@
   .calendar-toolbar {
     min-height: 82px;
     padding: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
   }
 
   .date-heading h2 {
     font-size: 20px;
+  }
+
+  .calendar-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .date-controls {

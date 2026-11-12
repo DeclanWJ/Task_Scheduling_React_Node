@@ -34,6 +34,34 @@
   background: #f3f6f0;
 }
 
+.task-item.is-compact {
+  min-height: 0;
+  margin-bottom: 0;
+  padding: 4px 5px;
+  gap: 5px;
+}
+
+.task-item.is-compact .task-check {
+  width: 13px;
+  height: 13px;
+  flex-basis: 13px;
+  margin-top: 1px;
+  font-size: 9px;
+  line-height: 11px;
+}
+
+.task-item.is-compact .task-title {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-item.is-compact .task-time,
+.task-item.is-compact .task-description {
+  display: none;
+}
+
 .task-check {
   width: 17px;
   height: 17px;

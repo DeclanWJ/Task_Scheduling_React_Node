@@ -16,6 +16,11 @@ export function getTasks(date, options) {
   return request(`/api/tasks?date=${date}`, options)
 }
 
+export function getTasksInRange(startDate, endDate, options) {
+  const params = new URLSearchParams({ startDate, endDate })
+  return request(`/api/tasks?${params}`, options)
+}
+
 export function createTask(task) {
   return request('/api/tasks', {
     method: 'POST',

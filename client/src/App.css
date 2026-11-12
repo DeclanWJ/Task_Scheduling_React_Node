@@ -63,6 +63,7 @@
 }
 
 .button-outline {
+  margin-top: 20px;
   border: 1px solid #dfe3da;
   color: #4f6249;
   background: #fff;
@@ -117,6 +118,13 @@
   color: #93443e;
   background: #fbefed;
   font-size: 13px;
+}
+
+.period-loading {
+  min-height: 255px;
+  padding: 55px 0;
+  color: #85877f;
+  text-align: center;
 }
 
 .page-footer {
