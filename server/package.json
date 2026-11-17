@@ -7,7 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "db:migrate": "node migrate.js",
-    "test": "node --test server.test.js taskValidation.test.js",
+    "test": "node --test server.test.js taskValidation.test.js taskColors.test.js",
     "test:integration": "node --test server.integration.test.js"
   },
   "keywords": [],

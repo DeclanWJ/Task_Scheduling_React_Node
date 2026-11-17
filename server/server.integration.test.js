@@ -23,10 +23,10 @@ test('health and date-range task queries reach PostgreSQL', async (t) => {
   const baseUrl = await startServer(t);
   const ids = Array.from({ length: 4 }, () => randomUUID());
   const tasks = [
-    [ids[0], 'Starts before the range', '2099-12-27T23:30:00', '2099-12-28T01:00:00'],
-    [ids[1], 'Inside the range', '2099-12-30T09:00:00', '2099-12-30T10:00:00'],
-    [ids[2], 'Ends at range start', '2099-12-27T22:00:00', '2099-12-28T00:00:00'],
-    [ids[3], 'Starts after the range', '2100-01-01T00:00:00', '2100-01-01T01:00:00'],
+    [ids[0], 'Starts before the range', '2099-12-27T23:30:00', '2099-12-28T01:00:00', '#83947b'],
+    [ids[1], 'Inside the range', '2099-12-30T09:00:00', '2099-12-30T10:00:00', '#789eb5'],
+    [ids[2], 'Ends at range start', '2099-12-27T22:00:00', '2099-12-28T00:00:00', '#be8293'],
+    [ids[3], 'Starts after the range', '2100-01-01T00:00:00', '2100-01-01T01:00:00', '#b19872'],
   ];
 
   t.after(async () => {
@@ -34,14 +34,17 @@ test('health and date-range task queries reach PostgreSQL', async (t) => {
   });
 
   await pool.query(
-    `INSERT INTO tasks (id, user_id, title, starts_at, ends_at)
-     VALUES ($1, $5, $6, $7, $8), ($2, $5, $9, $10, $11),
-            ($3, $5, $12, $13, $14), ($4, $5, $15, $16, $17)`,
-    [
-      ...ids,
+    `INSERT INTO tasks (id, user_id, title, starts_at, ends_at, color)
+     VALUES ($1, $2, $3, $4, $5, $6), ($7, $8, $9, $10, $11, $12),
+            ($13, $14, $15, $16, $17, $18), ($19, $20, $21, $22, $23, $24)`,
+    tasks.flatMap(([id, title, startsAt, endsAt, color]) => [
+      id,
       DEFAULT_USER_ID,
-      ...tasks.flatMap(([, title, startsAt, endsAt]) => [title, startsAt, endsAt]),
-    ],
+      title,
+      startsAt,
+      endsAt,
+      color,
+    ]),
   );
 
   const healthResponse = await fetch(`${baseUrl}/api/health`);
@@ -58,4 +61,69 @@ test('health and date-range task queries reach PostgreSQL', async (t) => {
     .filter((id) => ids.includes(id))
     .sort();
   assert.deepEqual(returnedIds, [ids[0], ids[1]].sort());
+});
+
+test('creates and reschedules tasks with distinct stored colors for overlaps', async (t) => {
+  const baseUrl = await startServer(t);
+  const ids = [];
+
+  t.after(async () => {
+    if (ids.length > 0) {
+      await pool.query('DELETE FROM tasks WHERE id = ANY($1::uuid[])', [ids]);
+    }
+  });
+
+  async function saveTask(path, task, method = 'POST') {
+    const response = await fetch(`${baseUrl}${path}`, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(task),
+    });
+    assert.equal(response.status, method === 'POST' ? 201 : 200);
+    const result = await response.json();
+    ids.push(result.id);
+    return result;
+  }
+
+  const first = await saveTask('/api/tasks', {
+    title: 'First task',
+    startsAt: '2098-01-02T09:00',
+    endsAt: '2098-01-02T10:00',
+  });
+  const second = await saveTask('/api/tasks', {
+    title: 'Second task',
+    startsAt: '2098-01-02T10:00',
+    endsAt: '2098-01-02T11:00',
+  });
+  assert.equal(second.color, first.color);
+
+  const rescheduled = await saveTask(`/api/tasks/${second.id}`, {
+    title: 'Second task',
+    startsAt: '2098-01-02T09:00',
+    endsAt: '2098-01-02T10:00',
+  }, 'PUT');
+  assert.notEqual(rescheduled.color, first.color);
+
+  const response = await fetch(
+    `${baseUrl}/api/tasks?date=2098-01-02`,
+  );
+  const savedTasks = await response.json();
+  assert.equal(
+    savedTasks.find((task) => task.id === rescheduled.id).color,
+    rescheduled.color,
+  );
+
+  const simultaneousTasks = await Promise.all([
+    saveTask('/api/tasks', {
+      title: 'Concurrent task one',
+      startsAt: '2098-01-03T09:00',
+      endsAt: '2098-01-03T10:00',
+    }),
+    saveTask('/api/tasks', {
+      title: 'Concurrent task two',
+      startsAt: '2098-01-03T09:00',
+      endsAt: '2098-01-03T10:00',
+    }),
+  ]);
+  assert.notEqual(simultaneousTasks[0].color, simultaneousTasks[1].color);
 });

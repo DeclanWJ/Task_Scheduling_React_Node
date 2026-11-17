@@ -7,6 +7,7 @@ A React calendar and Express API for planning tasks by day. The first version us
 - Day, Monday-start week, and month calendar views with period navigation and a jump-to-today control
 - Create, edit, complete, and delete scheduled tasks
 - Task title, optional notes, start time, and end time
+- Pastel task colors that stay consistent across calendar views and differ for overlapping tasks
 - PostgreSQL storage through an Express API
 - A user relationship on each task, ready for authentication to be added late
 
@@ -73,6 +74,8 @@ These are design notes for the current page rather than a formal design system. 
 | `DELETE` | `/api/tasks/:id` | Delete a task |
 
 Task request bodies use `title`, `description`, `startsAt`, and `endsAt`. Date-times are local wall-clock values for now; timezone-aware scheduling is a future enhancement.
+
+Task colors are assigned by the API, stored in PostgreSQL, and returned with each task.
 
 ## Database
 

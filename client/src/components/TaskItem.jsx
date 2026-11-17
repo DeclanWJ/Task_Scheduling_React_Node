@@ -18,7 +18,7 @@ function TaskItem({
   return (
     <article
       className={`task-item${task.completed ? ' is-complete' : ''}${compact ? ' is-compact' : ''}${timed ? ' is-timed' : ''}${timed && !showTime ? ' is-short' : ''}`}
-      style={style}
+      style={{ ...style, '--task-color': task.color || '#83947b' }}
     >
       <button
         type="button"

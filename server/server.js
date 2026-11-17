@@ -8,11 +8,33 @@ const {
   isUuid,
   validateTaskInput,
 } = require('./taskValidation');
+const { chooseTaskColor } = require('./taskColors');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const DEFAULT_USER_ID =
   process.env.APP_USER_ID || '00000000-0000-4000-8000-000000000001';
+
+async function withTransaction(callback) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const result = await callback(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function lockUserSchedule(client) {
+  await client.query('SELECT pg_advisory_xact_lock(hashtext($1)::bigint)', [
+    DEFAULT_USER_ID,
+  ]);
+}
 
 app.use(cors());
 app.use(express.json());
@@ -48,7 +70,7 @@ app.get('/api/tasks', async (req, res) => {
   }
 
   const result = await query(
-    `SELECT id, title, description, starts_at, ends_at, completed, created_at, updated_at
+    `SELECT id, title, description, starts_at, ends_at, completed, color, created_at, updated_at
      FROM tasks
      WHERE user_id = $1
        AND starts_at < $3::date + INTERVAL '1 day'
@@ -67,14 +89,24 @@ app.post('/api/tasks', async (req, res) => {
   }
 
   const { title, description, startsAt, endsAt } = validation.value;
-  const result = await query(
-    `INSERT INTO tasks (user_id, title, description, starts_at, ends_at)
-     VALUES ($1, $2, $3, $4, $5)
-     RETURNING id, title, description, starts_at, ends_at, completed, created_at, updated_at`,
-    [DEFAULT_USER_ID, title, description, startsAt, endsAt],
-  );
+  const task = await withTransaction(async (client) => {
+    await lockUserSchedule(client);
+    const overlappingTasks = await client.query(
+      `SELECT color FROM tasks
+       WHERE user_id = $1 AND starts_at < $3 AND ends_at > $2`,
+      [DEFAULT_USER_ID, startsAt, endsAt],
+    );
+    const color = chooseTaskColor(overlappingTasks.rows);
+    const result = await client.query(
+      `INSERT INTO tasks (user_id, title, description, starts_at, ends_at, color)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, title, description, starts_at, ends_at, completed, color, created_at, updated_at`,
+      [DEFAULT_USER_ID, title, description, startsAt, endsAt, color],
+    );
+    return result.rows[0];
+  });
 
-  res.status(201).json(result.rows[0]);
+  res.status(201).json(task);
 });
 
 app.put('/api/tasks/:id', async (req, res) => {
@@ -88,19 +120,49 @@ app.put('/api/tasks/:id', async (req, res) => {
   }
 
   const { title, description, startsAt, endsAt } = validation.value;
-  const result = await query(
-    `UPDATE tasks
-     SET title = $3, description = $4, starts_at = $5, ends_at = $6, updated_at = NOW()
-     WHERE id = $1 AND user_id = $2
-     RETURNING id, title, description, starts_at, ends_at, completed, created_at, updated_at`,
-    [req.params.id, DEFAULT_USER_ID, title, description, startsAt, endsAt],
-  );
+  const task = await withTransaction(async (client) => {
+    await lockUserSchedule(client);
+    const currentTask = await client.query(
+      'SELECT color FROM tasks WHERE id = $1 AND user_id = $2 FOR UPDATE',
+      [req.params.id, DEFAULT_USER_ID],
+    );
+    if (currentTask.rowCount === 0) {
+      return null;
+    }
 
-  if (result.rowCount === 0) {
+    const overlappingTasks = await client.query(
+      `SELECT color FROM tasks
+       WHERE user_id = $1 AND id <> $2 AND starts_at < $4 AND ends_at > $3`,
+      [DEFAULT_USER_ID, req.params.id, startsAt, endsAt],
+    );
+    const color = chooseTaskColor(
+      overlappingTasks.rows,
+      currentTask.rows[0].color,
+    );
+    const result = await client.query(
+      `UPDATE tasks
+       SET title = $3, description = $4, starts_at = $5, ends_at = $6,
+           color = $7, updated_at = NOW()
+       WHERE id = $1 AND user_id = $2
+       RETURNING id, title, description, starts_at, ends_at, completed, color, created_at, updated_at`,
+      [
+        req.params.id,
+        DEFAULT_USER_ID,
+        title,
+        description,
+        startsAt,
+        endsAt,
+        color,
+      ],
+    );
+    return result.rows[0];
+  });
+
+  if (!task) {
     return res.status(404).json({ error: 'Task not found.' });
   }
 
-  res.json(result.rows[0]);
+  res.json(task);
 });
 
 app.patch('/api/tasks/:id', async (req, res) => {
@@ -115,7 +177,7 @@ app.patch('/api/tasks/:id', async (req, res) => {
     `UPDATE tasks
      SET completed = $3, updated_at = NOW()
      WHERE id = $1 AND user_id = $2
-     RETURNING id, title, description, starts_at, ends_at, completed, created_at, updated_at`,
+     RETURNING id, title, description, starts_at, ends_at, completed, color, created_at, updated_at`,
     [req.params.id, DEFAULT_USER_ID, req.body.completed],
   );
 
