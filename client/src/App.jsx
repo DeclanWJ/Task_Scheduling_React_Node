@@ -235,7 +235,7 @@ function App() {
           {viewMode === 'day' && (
             <Schedule
               tasks={tasks}
-              dateKey={dateKey}
+              date={selectedDate}
               loading={loading}
               onCreate={startNewTask}
               onToggle={toggleTask}

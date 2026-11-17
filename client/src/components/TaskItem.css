@@ -1,0 +1,151 @@
+.task-item {
+  min-height: 48px;
+  margin-bottom: 5px;
+  padding: 7px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  border-left: 3px solid #83947b;
+  border-radius: 0 6px 6px 0;
+  background: #f3f6f0;
+}
+
+.task-item.is-compact {
+  min-height: 0;
+  margin-bottom: 0;
+  padding: 4px 5px;
+  gap: 5px;
+}
+
+.task-item.is-timed {
+  position: absolute;
+  z-index: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 3px 5px;
+  overflow: hidden;
+  gap: 5px;
+  border-left-width: 3px;
+  border-radius: 4px;
+}
+
+.task-check {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  margin-top: 2px;
+  padding: 0;
+  border: 1px solid #aeb8a7;
+  border-radius: 50%;
+  color: #fff;
+  background: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 15px;
+}
+
+.task-item.is-compact .task-check {
+  width: 13px;
+  height: 13px;
+  flex-basis: 13px;
+  margin-top: 1px;
+  font-size: 9px;
+  line-height: 11px;
+}
+
+.task-item.is-timed .task-check {
+  width: 13px;
+  height: 13px;
+  flex-basis: 13px;
+  margin-top: 1px;
+  font-size: 9px;
+  line-height: 11px;
+}
+
+.task-check[aria-pressed='true'] {
+  border-color: #6d8066;
+  background: #6d8066;
+}
+
+.task-details {
+  min-width: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  border: 0;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.task-item.is-timed .task-details {
+  flex: 1;
+  display: block;
+  overflow: hidden;
+}
+
+.task-title {
+  color: #354032;
+  font-size: 13px;
+  font-weight: 680;
+}
+
+.task-item.is-compact .task-title,
+.task-item.is-timed .task-title {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-item.is-compact .task-title {
+  font-size: 10px;
+}
+
+.task-item.is-timed .task-title {
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.task-time {
+  color: #7d8778;
+  font-size: 11px;
+}
+
+.task-item.is-timed .task-time {
+  display: block;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-item.is-timed.is-short .task-time,
+.task-item.is-compact .task-time,
+.task-item.is-compact .task-description,
+.task-item.is-timed .task-description {
+  display: none;
+}
+
+.task-description {
+  width: 100%;
+  overflow: hidden;
+  color: #777d73;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.is-complete .task-title {
+  color: #8d9688;
+  text-decoration: line-through;
+}
+
+.is-complete {
+  border-left-color: #b8c0b3;
+  background: #f7f8f6;
+}

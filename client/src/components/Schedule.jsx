@@ -1,11 +1,7 @@
-import TaskItem from './TaskItem.jsx'
+import TimedGrid from './TimedGrid.jsx'
 import './Schedule.css'
 
-function formatHour(hour) {
-  return `${hour % 12 || 12} ${hour < 12 ? 'AM' : 'PM'}`
-}
-
-function Schedule({ tasks, dateKey, loading, onCreate, onToggle, onEdit }) {
+function Schedule({ tasks, date, loading, onCreate, onToggle, onEdit }) {
   if (loading) {
     return (
       <div className="schedule">
@@ -27,41 +23,15 @@ function Schedule({ tasks, dateKey, loading, onCreate, onToggle, onEdit }) {
     )
   }
 
-  const otherTasks = tasks.filter((task) => {
-    const hour = Number(task.starts_at.slice(11, 13))
-    return task.starts_at.slice(0, 10) !== dateKey || hour < 7 || hour >= 23
-  })
-
   return (
     <div className="schedule">
-      {Array.from({ length: 16 }, (_, index) => index + 7).map((hour) => {
-        const hourTasks = tasks.filter(
-          (task) =>
-            task.starts_at.slice(0, 10) === dateKey &&
-            Number(task.starts_at.slice(11, 13)) === hour,
-        )
-
-        return (
-          <div className="time-row" key={hour}>
-            <div className="time-label">{formatHour(hour)}</div>
-            <div className="time-slot">
-              {hourTasks.map((task) => (
-                <TaskItem key={task.id} task={task} onToggle={onToggle} onEdit={onEdit} />
-              ))}
-            </div>
-          </div>
-        )
-      })}
-      {otherTasks.length > 0 && (
-        <div className="time-row">
-          <div className="time-label">Other</div>
-          <div className="time-slot">
-            {otherTasks.map((task) => (
-              <TaskItem key={task.id} task={task} onToggle={onToggle} onEdit={onEdit} />
-            ))}
-          </div>
-        </div>
-      )}
+      <TimedGrid
+        dates={[date]}
+        tasks={tasks}
+        mode="columns"
+        onToggle={onToggle}
+        onEdit={onEdit}
+      />
     </div>
   )
 }

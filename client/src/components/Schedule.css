@@ -3,132 +3,23 @@
   padding: 11px 28px 25px;
 }
 
-.time-row {
-  min-height: 66px;
-  display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
-}
-
-.time-label {
-  padding: 17px 0 0;
-  color: #9a9c94;
-  font-size: 11px;
-  font-weight: 550;
-}
-
-.time-slot {
-  min-width: 0;
-  padding: 7px 0;
-  border-top: 1px solid #efeee9;
-}
-
-.task-item {
-  min-height: 48px;
-  margin-bottom: 5px;
-  padding: 7px 12px;
-  display: flex;
-  align-items: flex-start;
-  gap: 11px;
-  border-left: 3px solid #83947b;
-  border-radius: 0 6px 6px 0;
-  background: #f3f6f0;
-}
-
-.task-item.is-compact {
-  min-height: 0;
-  margin-bottom: 0;
-  padding: 4px 5px;
-  gap: 5px;
-}
-
-.task-item.is-compact .task-check {
-  width: 13px;
-  height: 13px;
-  flex-basis: 13px;
-  margin-top: 1px;
-  font-size: 9px;
-  line-height: 11px;
-}
-
-.task-item.is-compact .task-title {
-  overflow: hidden;
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.task-item.is-compact .task-time,
-.task-item.is-compact .task-description {
-  display: none;
-}
-
-.task-check {
-  width: 17px;
-  height: 17px;
-  flex: 0 0 17px;
-  margin-top: 2px;
-  padding: 0;
-  border: 1px solid #aeb8a7;
-  border-radius: 50%;
-  color: #fff;
-  background: #fff;
-  cursor: pointer;
-  font-size: 11px;
-  line-height: 15px;
-}
-
-.task-check[aria-pressed='true'] {
-  border-color: #6d8066;
-  background: #6d8066;
-}
-
-.task-details {
-  min-width: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 12px;
-  border: 0;
-  color: inherit;
-  background: none;
-  cursor: pointer;
-  text-align: left;
-}
-
-.task-title {
-  color: #354032;
-  font-size: 13px;
-  font-weight: 680;
-}
-
-.task-time {
-  color: #7d8778;
-  font-size: 11px;
-}
-
-.task-description {
-  width: 100%;
-  overflow: hidden;
-  color: #777d73;
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.is-complete .task-title {
-  color: #8d9688;
-  text-decoration: line-through;
-}
-
-.is-complete {
-  border-left-color: #b8c0b3;
-  background: #f7f8f6;
-}
-
 .empty-state {
   padding: 35px 20px 45px;
   text-align: center;
+}
+
+.empty-state h3 {
+  margin: 0;
+  color: #333a31;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 21px;
+  font-weight: 500;
+}
+
+.empty-state p {
+  margin-top: 7px;
+  color: #85877f;
+  font-size: 13px;
 }
 
 .empty-icon {
@@ -143,12 +34,6 @@
   font-size: 21px;
 }
 
-.empty-state p {
-  margin-top: 7px;
-  color: #85877f;
-  font-size: 13px;
-}
-
 .schedule-message {
   padding: 55px 0;
   color: #85877f;
@@ -158,9 +43,5 @@
 @media (max-width: 600px) {
   .schedule {
     padding: 8px 14px 18px;
-  }
-
-  .time-row {
-    grid-template-columns: 54px minmax(0, 1fr);
   }
 }
