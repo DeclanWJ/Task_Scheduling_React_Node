@@ -1,7 +1,27 @@
+import { useState } from 'react'
 import './TaskForm.css'
 
 function TaskForm({ task, saving, onSubmit, onDelete, onClose }) {
   const isEditing = Boolean(task.id)
+  const [repeatMode, setRepeatMode] = useState('none')
+  const [selectedWeekdays, setSelectedWeekdays] = useState(() => {
+    const startDate = task.startsAt || task.starts_at
+    const weekday = new Date(`${startDate.slice(0, 10)}T00:00:00Z`).getUTCDay()
+    return [weekday]
+  })
+  const startDate = task.startsAt || task.starts_at
+  const repeatUntil = new Date(`${startDate.slice(0, 10)}T00:00:00Z`)
+  repeatUntil.setUTCDate(repeatUntil.getUTCDate() + 28)
+  const repeatUntilValue = repeatUntil.toISOString().slice(0, 10)
+  const weekdays = [
+    { value: 0, label: 'Sun' },
+    { value: 1, label: 'Mon' },
+    { value: 2, label: 'Tue' },
+    { value: 3, label: 'Wed' },
+    { value: 4, label: 'Thu' },
+    { value: 5, label: 'Fri' },
+    { value: 6, label: 'Sat' },
+  ]
 
   return (
     <form className="task-form" onSubmit={onSubmit}>
@@ -47,6 +67,59 @@ function TaskForm({ task, saving, onSubmit, onDelete, onClose }) {
           />
         </label>
       </div>
+      {!isEditing && (
+        <div className="repeat-fields">
+          <label>
+            Repeat
+            <select
+              name="repeat"
+              value={repeatMode}
+              onChange={(event) => setRepeatMode(event.target.value)}
+            >
+              <option value="none">Does not repeat</option>
+              <option value="daily">Every day</option>
+              <option value="weekdays">Every weekday (Mon–Fri)</option>
+              <option value="weekly">Custom days each week</option>
+            </select>
+          </label>
+          {repeatMode !== 'none' && (
+            <label>
+              Repeat until
+              <input
+                name="repeatUntil"
+                type="date"
+                required
+                defaultValue={repeatUntilValue}
+              />
+            </label>
+          )}
+          {repeatMode === 'weekly' && (
+            <fieldset className="weekday-picker">
+              <legend>Repeat on</legend>
+              <div className="weekday-options">
+                {weekdays.map(({ value, label }) => (
+                  <label key={value}>
+                    <input
+                      type="checkbox"
+                      name="repeatDays"
+                      value={value}
+                      checked={selectedWeekdays.includes(value)}
+                      onChange={() => {
+                        setSelectedWeekdays((current) =>
+                          current.includes(value)
+                            ? current.filter((day) => day !== value)
+                            : [...current, value],
+                        )
+                      }}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
+        </div>
+      )}
       <div className="form-actions">
         {isEditing && (
           <button type="button" className="button button-danger" onClick={onDelete} disabled={saving}>

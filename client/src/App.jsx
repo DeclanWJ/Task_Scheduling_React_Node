@@ -158,6 +158,13 @@ function App() {
       startsAt: formData.get('startsAt'),
       endsAt: formData.get('endsAt'),
     }
+    if (!editingTask.id) {
+      taskData.repeat = formData.get('repeat')
+      if (taskData.repeat !== 'none') {
+        taskData.repeatUntil = formData.get('repeatUntil')
+        taskData.repeatDays = formData.getAll('repeatDays').map(Number)
+      }
+    }
 
     setSaving(true)
     setError('')
@@ -225,6 +232,7 @@ function App() {
           {error && <p className="notice" role="alert">{error}</p>}
           {editingTask && (
             <TaskForm
+              key={editingTask.id || editingTask.startsAt}
               task={editingTask}
               saving={saving}
               onSubmit={saveTask}
