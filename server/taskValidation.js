@@ -1,3 +1,5 @@
+const { getTaskOccurrences } = require('./taskRecurrence');
+
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -82,7 +84,51 @@ function validateTaskInput(body) {
     return { error: 'The end time must be after the start time.' };
   }
 
-  return { value: { title, description, startsAt, endsAt } };
+  const repeat = input.repeat ?? 'none';
+  if (!['none', 'daily', 'weekdays', 'weekly'].includes(repeat)) {
+    return { error: 'Choose a valid repeat schedule.' };
+  }
+
+  const value = { title, description, startsAt, endsAt, repeat };
+  if (repeat !== 'none') {
+    const repeatUntil = input.repeatUntil;
+    if (!isValidDateOnly(repeatUntil)) {
+      return { error: 'A valid repeat-until date is required.' };
+    }
+
+    const startDate = startsAt.slice(0, 10);
+    const dayDifference =
+      (Date.parse(`${repeatUntil}T00:00:00Z`) -
+        Date.parse(`${startDate}T00:00:00Z`)) /
+      86400000;
+    if (dayDifference < 0) {
+      return { error: 'The repeat-until date must be on or after the task date.' };
+    }
+    if (dayDifference > 365) {
+      return { error: 'Tasks can repeat for up to one year.' };
+    }
+
+    value.repeatUntil = repeatUntil;
+    if (repeat === 'weekly') {
+      const repeatDays = input.repeatDays;
+      if (
+        !Array.isArray(repeatDays) ||
+        repeatDays.length === 0 ||
+        repeatDays.some(
+          (day) => !Number.isInteger(day) || day < 0 || day > 6,
+        ) ||
+        new Set(repeatDays).size !== repeatDays.length
+      ) {
+        return { error: 'Choose at least one valid day of the week.' };
+      }
+      value.repeatDays = repeatDays;
+    }
+    if (getTaskOccurrences(value).length === 0) {
+      return { error: 'The repeat schedule has no dates before the end date.' };
+    }
+  }
+
+  return { value };
 }
 
 module.exports = {

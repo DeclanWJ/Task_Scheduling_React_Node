@@ -34,6 +34,7 @@ test('validates and normalizes task input', () => {
         description: 'Review priorities',
         startsAt: '2026-11-11T09:30:00',
         endsAt: '2026-11-11T10:00:00',
+        repeat: 'none',
       },
     },
   );
@@ -56,5 +57,58 @@ test('rejects empty titles and invalid time ranges', () => {
       endsAt: '2026-11-11T10:00',
     }).error,
     /after/i,
+  );
+});
+
+test('validates repeat schedules and selected weekdays', () => {
+  assert.deepEqual(
+    validateTaskInput({
+      title: 'Standup',
+      startsAt: '2026-11-11T09:00',
+      endsAt: '2026-11-11T09:30',
+      repeat: 'weekly',
+      repeatUntil: '2026-11-30',
+      repeatDays: [1, 3],
+    }).value,
+    {
+      title: 'Standup',
+      description: '',
+      startsAt: '2026-11-11T09:00:00',
+      endsAt: '2026-11-11T09:30:00',
+      repeat: 'weekly',
+      repeatUntil: '2026-11-30',
+      repeatDays: [1, 3],
+    },
+  );
+  assert.match(
+    validateTaskInput({
+      title: 'Standup',
+      startsAt: '2026-11-11T09:00',
+      endsAt: '2026-11-11T09:30',
+      repeat: 'weekly',
+      repeatUntil: '2026-11-30',
+      repeatDays: [],
+    }).error,
+    /day of the week/i,
+  );
+  assert.match(
+    validateTaskInput({
+      title: 'Standup',
+      startsAt: '2026-11-11T09:00',
+      endsAt: '2026-11-11T09:30',
+      repeat: 'daily',
+      repeatUntil: '2027-11-12',
+    }).error,
+    /one year/i,
+  );
+  assert.match(
+    validateTaskInput({
+      title: 'Standup',
+      startsAt: '2026-11-14T09:00',
+      endsAt: '2026-11-14T09:30',
+      repeat: 'weekdays',
+      repeatUntil: '2026-11-14',
+    }).error,
+    /no dates/i,
   );
 });

@@ -127,3 +127,43 @@ test('creates and reschedules tasks with distinct stored colors for overlaps', a
   ]);
   assert.notEqual(simultaneousTasks[0].color, simultaneousTasks[1].color);
 });
+
+test('creates independent task copies for a weekly repeat schedule', async (t) => {
+  const baseUrl = await startServer(t);
+  const title = `Weekly repeat ${randomUUID()}`;
+  t.after(async () => {
+    await pool.query('DELETE FROM tasks WHERE user_id = $1 AND title = $2', [
+      DEFAULT_USER_ID,
+      title,
+    ]);
+  });
+
+  const response = await fetch(`${baseUrl}/api/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title,
+      startsAt: '2099-12-28T09:00',
+      endsAt: '2099-12-28T10:00',
+      repeat: 'weekly',
+      repeatUntil: '2100-01-05',
+      repeatDays: [1, 3],
+    }),
+  });
+  assert.equal(response.status, 201);
+
+  const result = await pool.query(
+    `SELECT starts_at::text AS starts_at, ends_at::text AS ends_at, color
+     FROM tasks WHERE user_id = $1 AND title = $2 ORDER BY starts_at`,
+    [DEFAULT_USER_ID, title],
+  );
+  assert.deepEqual(
+    result.rows.map(({ starts_at, ends_at }) => [starts_at, ends_at]),
+    [
+      ['2099-12-28 09:00:00', '2099-12-28 10:00:00'],
+      ['2099-12-30 09:00:00', '2099-12-30 10:00:00'],
+      ['2100-01-04 09:00:00', '2100-01-04 10:00:00'],
+    ],
+  );
+  assert.equal(new Set(result.rows.map(({ color }) => color)).size, 1);
+});

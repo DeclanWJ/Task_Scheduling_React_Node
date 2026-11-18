@@ -9,6 +9,7 @@ const {
   validateTaskInput,
 } = require('./taskValidation');
 const { chooseTaskColor } = require('./taskColors');
+const { getTaskOccurrences } = require('./taskRecurrence');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -88,22 +89,43 @@ app.post('/api/tasks', async (req, res) => {
     return res.status(400).json({ error: validation.error });
   }
 
-  const { title, description, startsAt, endsAt } = validation.value;
+  const { title, description } = validation.value;
+  const occurrences = getTaskOccurrences(validation.value);
   const task = await withTransaction(async (client) => {
     await lockUserSchedule(client);
-    const overlappingTasks = await client.query(
-      `SELECT color FROM tasks
-       WHERE user_id = $1 AND starts_at < $3 AND ends_at > $2`,
-      [DEFAULT_USER_ID, startsAt, endsAt],
-    );
-    const color = chooseTaskColor(overlappingTasks.rows);
-    const result = await client.query(
-      `INSERT INTO tasks (user_id, title, description, starts_at, ends_at, color)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, title, description, starts_at, ends_at, completed, color, created_at, updated_at`,
-      [DEFAULT_USER_ID, title, description, startsAt, endsAt, color],
-    );
-    return result.rows[0];
+    const overlappingColors = new Set();
+    for (const occurrence of occurrences) {
+      const overlappingTasks = await client.query(
+        `SELECT color FROM tasks
+         WHERE user_id = $1 AND starts_at < $3 AND ends_at > $2`,
+        [DEFAULT_USER_ID, occurrence.startsAt, occurrence.endsAt],
+      );
+      for (const overlappingTask of overlappingTasks.rows) {
+        overlappingColors.add(overlappingTask.color);
+      }
+    }
+
+    const color = chooseTaskColor([...overlappingColors]);
+    let firstTask;
+    for (const occurrence of occurrences) {
+      const result = await client.query(
+        `INSERT INTO tasks (user_id, title, description, starts_at, ends_at, color)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING id, title, description, starts_at, ends_at, completed, color, created_at, updated_at`,
+        [
+          DEFAULT_USER_ID,
+          title,
+          description,
+          occurrence.startsAt,
+          occurrence.endsAt,
+          color,
+        ],
+      );
+      if (!firstTask) {
+        firstTask = result.rows[0];
+      }
+    }
+    return firstTask;
   });
 
   res.status(201).json(task);
