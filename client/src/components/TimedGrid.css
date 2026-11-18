@@ -1,5 +1,5 @@
 .timed-grid.is-week {
-  min-width: 1000px;
+  min-width: 0;
 }
 
 .timed-grid-header,
@@ -17,7 +17,7 @@
 .timed-grid.is-week .timed-grid-body,
 .timed-grid.is-week .timed-other-row,
 .timed-grid.is-week .timed-grid-header {
-  grid-template-columns: 72px repeat(7, minmax(125px, 1fr));
+  grid-template-columns: 72px repeat(7, minmax(0, 1fr));
 }
 
 .timed-axis-corner,
@@ -97,6 +97,10 @@
 }
 
 @media (max-width: 600px) {
+  .timed-grid.is-week {
+    min-width: 1000px;
+  }
+
   .timed-grid.is-day .timed-grid-body,
   .timed-grid.is-day .timed-other-row,
   .timed-grid.is-day .timed-grid-header {

@@ -18,9 +18,8 @@ export function addMonths(date, months) {
 }
 
 export function getWeekDates(date) {
-  const mondayOffset = (date.getDay() + 6) % 7
-  const monday = addDays(date, -mondayOffset)
-  return Array.from({ length: 7 }, (_, index) => addDays(monday, index))
+  const sunday = addDays(date, -date.getDay())
+  return Array.from({ length: 7 }, (_, index) => addDays(sunday, index))
 }
 
 export function getMonthGridDates(date) {

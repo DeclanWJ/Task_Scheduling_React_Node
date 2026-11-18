@@ -214,7 +214,7 @@ function App() {
   return (
     <div className="app-shell">
       <AppHeader onAddTask={startNewTask} />
-      <main className="main-content">
+      <main className={`main-content${viewMode === 'week' ? ' is-week-view' : ''}`}>
         <WelcomeSection />
         <section className="calendar-card" aria-label="Calendar schedule">
           <CalendarToolbar
@@ -266,7 +266,7 @@ function App() {
               selectedDate={selectedDate}
               todayKey={todayKey}
               tasks={tasks}
-              onSelectDate={selectDate}
+              onSelectDate={(date) => selectDate(date, 'day')}
               onToggle={toggleTask}
               onEdit={setEditingTask}
             />
