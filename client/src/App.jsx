@@ -12,6 +12,7 @@ import AppHeader from './components/AppHeader.jsx'
 import CalendarToolbar from './components/CalendarToolbar.jsx'
 import MonthView from './components/MonthView.jsx'
 import Schedule from './components/Schedule.jsx'
+import TaskDetails from './components/TaskDetails.jsx'
 import TaskForm from './components/TaskForm.jsx'
 import WelcomeSection from './components/WelcomeSection.jsx'
 import WeekView from './components/WeekView.jsx'
@@ -35,6 +36,7 @@ function App() {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [viewingTaskId, setViewingTaskId] = useState(null)
   const [editingTask, setEditingTask] = useState(null)
   const [saving, setSaving] = useState(false)
 
@@ -101,6 +103,7 @@ function App() {
   }, [rangeEnd, rangeStart, viewMode])
 
   const completedCount = tasks.filter((task) => task.completed).length
+  const viewingTask = tasks.find((task) => task.id === viewingTaskId)
 
   function selectDate(date, nextViewMode = viewMode) {
     const nextPeriodDates = datesForView(date, nextViewMode)
@@ -115,6 +118,7 @@ function App() {
       setLoading(true)
     }
     setError('')
+    setViewingTaskId(null)
     setSelectedDate(date)
     setViewMode(nextViewMode)
   }
@@ -134,6 +138,7 @@ function App() {
   }
 
   function startNewTask() {
+    setViewingTaskId(null)
     setEditingTask({
       title: '',
       description: '',
@@ -176,6 +181,7 @@ function App() {
         await createTask(taskData)
       }
       setEditingTask(null)
+      setViewingTaskId(null)
       await reloadTasks()
     } catch (saveError) {
       setError(saveError.message)
@@ -214,6 +220,7 @@ function App() {
         await removeTask(editingTask.id)
       }
       setEditingTask(null)
+      setViewingTaskId(null)
       await reloadTasks()
     } catch (deleteError) {
       setError(deleteError.message)
@@ -241,6 +248,16 @@ function App() {
             <span>{completedCount} completed</span>
           </div>
           {error && <p className="notice" role="alert">{error}</p>}
+          {viewingTask && !editingTask && (
+            <TaskDetails
+              task={viewingTask}
+              onEdit={() => {
+                setEditingTask(viewingTask)
+                setViewingTaskId(null)
+              }}
+              onClose={() => setViewingTaskId(null)}
+            />
+          )}
           {editingTask && (
             <TaskForm
               key={editingTask.id || editingTask.startsAt}
@@ -249,7 +266,10 @@ function App() {
               onSubmit={saveTask}
               onDelete={() => deleteTask()}
               onDeleteAllOccurrences={() => deleteTask(true)}
-              onClose={() => setEditingTask(null)}
+              onClose={() => {
+                setEditingTask(null)
+                setViewingTaskId(editingTask.id || null)
+              }}
             />
           )}
           {viewMode === 'day' && (
@@ -259,7 +279,7 @@ function App() {
               loading={loading}
               onCreate={startNewTask}
               onToggle={toggleTask}
-              onEdit={setEditingTask}
+              onView={(task) => setViewingTaskId(task.id)}
             />
           )}
           {viewMode === 'week' && !loading && (
@@ -269,7 +289,7 @@ function App() {
               selectedDate={selectedDate}
               onSelectDate={(date) => selectDate(date, 'day')}
               onToggle={toggleTask}
-              onEdit={setEditingTask}
+              onView={(task) => setViewingTaskId(task.id)}
             />
           )}
           {viewMode === 'month' && !loading && (
@@ -280,7 +300,7 @@ function App() {
               tasks={tasks}
               onSelectDate={(date) => selectDate(date, 'day')}
               onToggle={toggleTask}
-              onEdit={setEditingTask}
+              onView={(task) => setViewingTaskId(task.id)}
             />
           )}
           {viewMode !== 'day' && loading && (

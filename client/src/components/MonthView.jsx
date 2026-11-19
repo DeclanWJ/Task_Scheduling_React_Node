@@ -17,7 +17,7 @@ function tasksForDate(tasks, date) {
   )
 }
 
-function MonthView({ date, selectedDate, todayKey, tasks, onSelectDate, onToggle, onEdit }) {
+function MonthView({ date, selectedDate, todayKey, tasks, onSelectDate, onToggle, onView }) {
   const dates = getMonthGridDates(date)
   const selectedDateKey = toDateKey(selectedDate)
 
@@ -58,7 +58,7 @@ function MonthView({ date, selectedDate, todayKey, tasks, onSelectDate, onToggle
                     task={task}
                     compact
                     onToggle={onToggle}
-                    onEdit={onEdit}
+                    onView={onView}
                   />
                 ))}
                 {cellTasks.length > 3 && (

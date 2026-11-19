@@ -79,7 +79,7 @@ function TimedGrid({
   selectedDate,
   onSelectDate,
   onToggle,
-  onEdit,
+  onView,
 }) {
   const dayLayouts = dates.map((date) => getDayLayout(date, tasks, mode))
   const hasOtherTasks = dayLayouts.some((day) => day.otherTasks.length > 0)
@@ -123,7 +123,7 @@ function TimedGrid({
                   timeLabel={timeLabel}
                   style={positionedStyle(event, mode)}
                   onToggle={onToggle}
-                  onEdit={onEdit}
+                  onView={onView}
                 />
               )
             })}
@@ -136,7 +136,7 @@ function TimedGrid({
           {dayLayouts.map(({ dateKey, otherTasks }) => (
             <div className="timed-other-slot" key={dateKey}>
               {otherTasks.map((task) => (
-                <TaskItem key={task.id} task={task} onToggle={onToggle} onEdit={onEdit} />
+                <TaskItem key={task.id} task={task} onToggle={onToggle} onView={onView} />
               ))}
             </div>
           ))}

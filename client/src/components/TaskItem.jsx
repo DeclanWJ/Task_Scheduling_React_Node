@@ -13,7 +13,7 @@ function TaskItem({
   timeLabel,
   style,
   onToggle,
-  onEdit,
+  onView,
 }) {
   return (
     <article
@@ -29,7 +29,12 @@ function TaskItem({
       >
         {task.completed ? '✓' : ''}
       </button>
-      <button type="button" className="task-details" onClick={() => onEdit(task)}>
+      <button
+        type="button"
+        className="task-details"
+        aria-label={`View details for ${task.title}`}
+        onClick={() => onView(task)}
+      >
         <span className="task-title">{task.title}</span>
         {showTime && (
           <span className="task-time">

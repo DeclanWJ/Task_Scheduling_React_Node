@@ -1,7 +1,7 @@
 import TimedGrid from './TimedGrid.jsx'
 import './Schedule.css'
 
-function Schedule({ tasks, date, loading, onCreate, onToggle, onEdit }) {
+function Schedule({ tasks, date, loading, onCreate, onToggle, onView }) {
   if (loading) {
     return (
       <div className="schedule">
@@ -30,7 +30,7 @@ function Schedule({ tasks, date, loading, onCreate, onToggle, onEdit }) {
         tasks={tasks}
         mode="columns"
         onToggle={onToggle}
-        onEdit={onEdit}
+        onView={onView}
       />
     </div>
   )

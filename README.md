@@ -6,6 +6,7 @@ A React calendar and Express API for planning tasks by day. The first version us
 
 - Day, Monday-start week, and month calendar views with period navigation and a jump-to-today control
 - Create, edit, complete, and delete scheduled tasks
+- View task descriptions and schedule details without entering edit mode
 - Task title, optional notes, start time, and end time
 - Create daily, weekday, or selected-weekday copies through a chosen end date
 - Pastel task colors that stay consistent across calendar views and differ for overlapping tasks
