@@ -128,7 +128,7 @@ test('creates and reschedules tasks with distinct stored colors for overlaps', a
   assert.notEqual(simultaneousTasks[0].color, simultaneousTasks[1].color);
 });
 
-test('creates independent task copies for a weekly repeat schedule', async (t) => {
+test('creates and deletes every occurrence in a weekly repeat schedule', async (t) => {
   const baseUrl = await startServer(t);
   const title = `Weekly repeat ${randomUUID()}`;
   t.after(async () => {
@@ -151,9 +151,11 @@ test('creates independent task copies for a weekly repeat schedule', async (t) =
     }),
   });
   assert.equal(response.status, 201);
+  const createdTask = await response.json();
+  assert.ok(createdTask.series_id);
 
   const result = await pool.query(
-    `SELECT starts_at::text AS starts_at, ends_at::text AS ends_at, color
+    `SELECT starts_at::text AS starts_at, ends_at::text AS ends_at, color, series_id
      FROM tasks WHERE user_id = $1 AND title = $2 ORDER BY starts_at`,
     [DEFAULT_USER_ID, title],
   );
@@ -166,4 +168,82 @@ test('creates independent task copies for a weekly repeat schedule', async (t) =
     ],
   );
   assert.equal(new Set(result.rows.map(({ color }) => color)).size, 1);
+  assert.deepEqual(
+    new Set(result.rows.map(({ series_id }) => series_id)),
+    new Set([createdTask.series_id]),
+  );
+
+  const deleteResponse = await fetch(
+    `${baseUrl}/api/tasks/${createdTask.id}/occurrences`,
+    { method: 'DELETE' },
+  );
+  assert.equal(deleteResponse.status, 204);
+  const remainingTasks = await pool.query(
+    'SELECT id FROM tasks WHERE user_id = $1 AND title = $2',
+    [DEFAULT_USER_ID, title],
+  );
+  assert.equal(remainingTasks.rowCount, 0);
+});
+
+test('deletes past and future occurrences from any task in a daily series', async (t) => {
+  const baseUrl = await startServer(t);
+  const title = `Daily repeat ${randomUUID()}`;
+  const today = new Date();
+  const todayKey = [
+    today.getFullYear(),
+    String(today.getMonth() + 1).padStart(2, '0'),
+    String(today.getDate()).padStart(2, '0'),
+  ].join('-');
+  const dateWithOffset = (offset) => {
+    const date = new Date(today);
+    date.setDate(date.getDate() + offset);
+    return [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, '0'),
+      String(date.getDate()).padStart(2, '0'),
+    ].join('-');
+  };
+  const startsOn = dateWithOffset(-2);
+  const endsOn = dateWithOffset(2);
+
+  t.after(async () => {
+    await pool.query('DELETE FROM tasks WHERE user_id = $1 AND title = $2', [
+      DEFAULT_USER_ID,
+      title,
+    ]);
+  });
+
+  const createResponse = await fetch(`${baseUrl}/api/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title,
+      startsAt: `${startsOn}T09:00`,
+      endsAt: `${startsOn}T10:00`,
+      repeat: 'daily',
+      repeatUntil: endsOn,
+    }),
+  });
+  assert.equal(createResponse.status, 201);
+  const createdTask = await createResponse.json();
+
+  const occurrences = await pool.query(
+    `SELECT starts_at::date::text AS task_date
+     FROM tasks WHERE user_id = $1 AND title = $2`,
+    [DEFAULT_USER_ID, title],
+  );
+  assert.equal(occurrences.rowCount, 5);
+  assert.ok(occurrences.rows.some(({ task_date }) => task_date < todayKey));
+  assert.ok(occurrences.rows.some(({ task_date }) => task_date > todayKey));
+
+  const deleteResponse = await fetch(
+    `${baseUrl}/api/tasks/${createdTask.id}/occurrences`,
+    { method: 'DELETE' },
+  );
+  assert.equal(deleteResponse.status, 204);
+  const remainingTasks = await pool.query(
+    'SELECT id FROM tasks WHERE user_id = $1 AND title = $2',
+    [DEFAULT_USER_ID, title],
+  );
+  assert.equal(remainingTasks.rowCount, 0);
 });

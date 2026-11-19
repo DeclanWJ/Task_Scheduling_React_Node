@@ -129,8 +129,11 @@
   gap: 9px;
 }
 
-.form-actions .button-danger {
+.delete-actions {
   margin-right: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
 }
 
 @media (max-width: 600px) {
@@ -147,7 +150,7 @@
     flex-wrap: wrap;
   }
 
-  .form-actions .button-danger {
+  .delete-actions {
     flex-basis: 100%;
     margin-right: 0;
   }

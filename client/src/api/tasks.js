@@ -45,3 +45,7 @@ export function setTaskCompleted(id, completed) {
 export function deleteTask(id) {
   return request(`/api/tasks/${id}`, { method: 'DELETE' })
 }
+
+export function deleteTaskOccurrences(id) {
+  return request(`/api/tasks/${id}/occurrences`, { method: 'DELETE' })
+}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   createTask,
   deleteTask as removeTask,
+  deleteTaskOccurrences,
   getTasks,
   getTasksInRange,
   setTaskCompleted,
@@ -193,15 +194,25 @@ function App() {
     }
   }
 
-  async function deleteTask() {
-    if (!editingTask?.id || !window.confirm('Delete this task?')) {
+  async function deleteTask(deleteOccurrences = false) {
+    if (!editingTask?.id) {
+      return
+    }
+    const confirmation = deleteOccurrences
+      ? 'Delete all past and future occurrences of this task? This cannot be undone.'
+      : 'Delete this task?'
+    if (!window.confirm(confirmation)) {
       return
     }
 
     setSaving(true)
     setError('')
     try {
-      await removeTask(editingTask.id)
+      if (deleteOccurrences) {
+        await deleteTaskOccurrences(editingTask.id)
+      } else {
+        await removeTask(editingTask.id)
+      }
       setEditingTask(null)
       await reloadTasks()
     } catch (deleteError) {
@@ -236,7 +247,8 @@ function App() {
               task={editingTask}
               saving={saving}
               onSubmit={saveTask}
-              onDelete={deleteTask}
+              onDelete={() => deleteTask()}
+              onDeleteAllOccurrences={() => deleteTask(true)}
               onClose={() => setEditingTask(null)}
             />
           )}

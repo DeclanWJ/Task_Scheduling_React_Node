@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import './TaskForm.css'
 
-function TaskForm({ task, saving, onSubmit, onDelete, onClose }) {
+function TaskForm({
+  task,
+  saving,
+  onSubmit,
+  onDelete,
+  onDeleteAllOccurrences,
+  onClose,
+}) {
   const isEditing = Boolean(task.id)
   const [repeatMode, setRepeatMode] = useState('none')
   const [selectedWeekdays, setSelectedWeekdays] = useState(() => {
@@ -122,9 +129,21 @@ function TaskForm({ task, saving, onSubmit, onDelete, onClose }) {
       )}
       <div className="form-actions">
         {isEditing && (
-          <button type="button" className="button button-danger" onClick={onDelete} disabled={saving}>
-            Delete task
-          </button>
+          <div className="delete-actions">
+            <button type="button" className="button button-danger" onClick={onDelete} disabled={saving}>
+              Delete task
+            </button>
+            {task.series_id && (
+              <button
+                type="button"
+                className="button button-danger"
+                onClick={onDeleteAllOccurrences}
+                disabled={saving}
+              >
+                Delete all occurrences
+              </button>
+            )}
+          </div>
         )}
         <button type="button" className="button button-subtle" onClick={onClose}>
           Cancel

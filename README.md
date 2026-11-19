@@ -73,16 +73,17 @@ These are design notes for the current page rather than a formal design system. 
 | `PUT` | `/api/tasks/:id` | Update a task's details and time |
 | `PATCH` | `/api/tasks/:id` | Change its `completed` status |
 | `DELETE` | `/api/tasks/:id` | Delete a task |
+| `DELETE` | `/api/tasks/:id/occurrences` | Delete every occurrence in its repeating series |
 
 Task request bodies use `title`, `description`, `startsAt`, and `endsAt`. Date-times are local wall-clock values for now; timezone-aware scheduling is a future enhancement.
 
-To create copies with a repeating schedule, a `POST /api/tasks` request can also include `repeat` (`daily`, `weekdays`, or `weekly`), an inclusive `repeatUntil` date, and `repeatDays` (weekday numbers from 0 for Sunday through 6 for Saturday) when `repeat` is `weekly`. Repeated dates are saved as independent tasks, so editing or completing one copy does not affect the others. Repeats are limited to one year.
+To create copies with a repeating schedule, a `POST /api/tasks` request can also include `repeat` (`daily`, `weekdays`, or `weekly`), an inclusive `repeatUntil` date, and `repeatDays` (weekday numbers from 0 for Sunday through 6 for Saturday) when `repeat` is `weekly`. Repeated dates are saved as individual tasks, so editing or completing one copy does not affect the others. Repeats are limited to one year. The task editor offers a separate action to delete every past and future occurrence in that series.
 
 Task colors are assigned by the API, stored in PostgreSQL, and returned with each task.
 
 ## Database
 
-`server/migrations/001_initial_schema.sql` creates the `users` and `tasks` tables and seeds the local development user. The migration runner records applied files in `schema_migrations`, so running `npm run db:migrate` again is safe.
+`server/migrations/001_initial_schema.sql` creates the `users` and `tasks` tables and seeds the local development user. Later migrations add task colors and repeating-series identifiers. The migration runner records applied files in `schema_migrations`, so running `npm run db:migrate` again is safe.
 
 To stop PostgreSQL while retaining local task data, run `docker compose down`. To also erase the database volume and all its data, run `docker compose down -v`.
 

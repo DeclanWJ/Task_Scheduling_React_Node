@@ -1,5 +1,6 @@
 require('dotenv').config();
 
+const { randomUUID } = require('node:crypto');
 const express = require('express');
 const cors = require('cors');
 const { pool, query } = require('./database');
@@ -71,7 +72,7 @@ app.get('/api/tasks', async (req, res) => {
   }
 
   const result = await query(
-    `SELECT id, title, description, starts_at, ends_at, completed, color, created_at, updated_at
+    `SELECT id, title, description, starts_at, ends_at, completed, color, series_id, created_at, updated_at
      FROM tasks
      WHERE user_id = $1
        AND starts_at < $3::date + INTERVAL '1 day'
@@ -91,6 +92,7 @@ app.post('/api/tasks', async (req, res) => {
 
   const { title, description } = validation.value;
   const occurrences = getTaskOccurrences(validation.value);
+  const seriesId = validation.value.repeat === 'none' ? null : randomUUID();
   const task = await withTransaction(async (client) => {
     await lockUserSchedule(client);
     const overlappingColors = new Set();
@@ -109,9 +111,9 @@ app.post('/api/tasks', async (req, res) => {
     let firstTask;
     for (const occurrence of occurrences) {
       const result = await client.query(
-        `INSERT INTO tasks (user_id, title, description, starts_at, ends_at, color)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING id, title, description, starts_at, ends_at, completed, color, created_at, updated_at`,
+        `INSERT INTO tasks (user_id, title, description, starts_at, ends_at, color, series_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING id, title, description, starts_at, ends_at, completed, color, series_id, created_at, updated_at`,
         [
           DEFAULT_USER_ID,
           title,
@@ -119,6 +121,7 @@ app.post('/api/tasks', async (req, res) => {
           occurrence.startsAt,
           occurrence.endsAt,
           color,
+          seriesId,
         ],
       );
       if (!firstTask) {
@@ -166,7 +169,7 @@ app.put('/api/tasks/:id', async (req, res) => {
        SET title = $3, description = $4, starts_at = $5, ends_at = $6,
            color = $7, updated_at = NOW()
        WHERE id = $1 AND user_id = $2
-       RETURNING id, title, description, starts_at, ends_at, completed, color, created_at, updated_at`,
+       RETURNING id, title, description, starts_at, ends_at, completed, color, series_id, created_at, updated_at`,
       [
         req.params.id,
         DEFAULT_USER_ID,
@@ -199,7 +202,7 @@ app.patch('/api/tasks/:id', async (req, res) => {
     `UPDATE tasks
      SET completed = $3, updated_at = NOW()
      WHERE id = $1 AND user_id = $2
-     RETURNING id, title, description, starts_at, ends_at, completed, color, created_at, updated_at`,
+     RETURNING id, title, description, starts_at, ends_at, completed, color, series_id, created_at, updated_at`,
     [req.params.id, DEFAULT_USER_ID, req.body.completed],
   );
 
@@ -217,6 +220,38 @@ app.delete('/api/tasks/:id', async (req, res) => {
 
   const result = await query(
     'DELETE FROM tasks WHERE id = $1 AND user_id = $2',
+    [req.params.id, DEFAULT_USER_ID],
+  );
+
+  if (result.rowCount === 0) {
+    return res.status(404).json({ error: 'Task not found.' });
+  }
+
+  res.status(204).end();
+});
+
+app.delete('/api/tasks/:id/occurrences', async (req, res) => {
+  if (!isUuid(req.params.id)) {
+    return res.status(400).json({ error: 'A valid task ID is required.' });
+  }
+
+  const result = await query(
+    `WITH target AS (
+       SELECT id, series_id
+       FROM tasks
+       WHERE id = $1 AND user_id = $2
+     )
+     DELETE FROM tasks AS occurrence
+     USING target
+     WHERE occurrence.user_id = $2
+       AND (
+         occurrence.id = target.id
+         OR (
+           target.series_id IS NOT NULL
+           AND occurrence.series_id = target.series_id
+         )
+       )
+     RETURNING occurrence.id`,
     [req.params.id, DEFAULT_USER_ID],
   );
 
