@@ -1,13 +1,12 @@
 import { addDays, toDateKey } from '../utils/calendar.js'
 import {
-  GRID_START_MINUTE,
+  getEventPositionStyle,
   getVisibleTaskInterval,
   layoutOverlappingEvents,
 } from '../utils/timeline.js'
 import TaskItem from './TaskItem.jsx'
 import './TimedGrid.css'
 
-const HOUR_HEIGHT = 64
 const hours = Array.from({ length: 16 }, (_, index) => index + 7)
 const pad = (value) => String(value).padStart(2, '0')
 
@@ -27,29 +26,6 @@ function overlapsDate(task, dateKey) {
   const nextDateKey = toDateKey(addDays(new Date(`${dateKey}T00:00:00`), 1))
   const dayEnd = `${nextDateKey}T00:00:00`
   return task.starts_at < dayEnd && task.ends_at > dayStart
-}
-
-function positionedStyle(event, mode) {
-  const visualStart = event.start + (event.stackOffsetMinutes || 0)
-  const top = ((visualStart - GRID_START_MINUTE) * HOUR_HEIGHT) / 60
-  const height = ((event.end - visualStart) * HOUR_HEIGHT) / 60
-  const style = {
-    top: `${top}px`,
-    height: `${height}px`,
-    zIndex: event.zIndex,
-  }
-
-  if (mode === 'columns') {
-    const laneWidth = 100 / event.laneCount
-    style.left = `calc(${event.lane * laneWidth}% + 2px)`
-    style.width = `calc(${laneWidth}% - 4px)`
-  } else {
-    const stackOffset = Math.min(event.stackIndex * 3, 18)
-    style.left = `${stackOffset}px`
-    style.width = `calc(100% - ${stackOffset}px)`
-  }
-
-  return style
 }
 
 function getDayLayout(date, tasks, mode) {
@@ -121,7 +97,7 @@ function TimedGrid({
                   timed
                   showTime={event.duration >= 36}
                   timeLabel={timeLabel}
-                  style={positionedStyle(event, mode)}
+                  style={getEventPositionStyle(event, mode)}
                   onToggle={onToggle}
                   onView={onView}
                 />

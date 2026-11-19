@@ -24,7 +24,7 @@ function formatSchedule(task) {
   return `${startDate}, ${startTime} – ${dateFormatter.format(endsAt)}, ${endTime}`
 }
 
-function TaskDetails({ task, onEdit, onClose }) {
+function TaskDetails({ task, onEdit, onToggle, onClose }) {
   return (
     <section className="task-detail-panel" aria-label="Task details">
       <div className="task-detail-heading">
@@ -44,9 +44,18 @@ function TaskDetails({ task, onEdit, onClose }) {
         <span className="task-detail-status">
           {task.completed ? 'Completed' : 'Not completed'}
         </span>
-        <button type="button" className="button button-primary" onClick={onEdit}>
-          Edit task
-        </button>
+        <div className="task-detail-buttons">
+          <button
+            type="button"
+            className="button button-subtle"
+            onClick={() => onToggle(task)}
+          >
+            {task.completed ? 'Mark incomplete' : 'Mark complete'}
+          </button>
+          <button type="button" className="button button-primary" onClick={onEdit}>
+            Edit task
+          </button>
+        </div>
       </div>
     </section>
   )

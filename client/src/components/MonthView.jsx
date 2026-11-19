@@ -3,7 +3,7 @@ import TaskItem from './TaskItem.jsx'
 import './MonthView.css'
 
 const weekDays = Array.from({ length: 7 }, (_, index) => {
-  const date = addDays(new Date(2024, 0, 1), index)
+  const date = addDays(new Date(2024, 0, 7), index)
   return new Intl.DateTimeFormat(undefined, { weekday: 'short' }).format(date)
 })
 

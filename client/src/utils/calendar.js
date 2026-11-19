@@ -25,7 +25,7 @@ export function getWeekDates(date) {
 export function getMonthGridDates(date) {
   const firstOfMonth = new Date(date.getFullYear(), date.getMonth(), 1)
   const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
-  const daysBeforeMonth = (firstOfMonth.getDay() + 6) % 7
+  const daysBeforeMonth = firstOfMonth.getDay()
   const gridStart = addDays(firstOfMonth, -daysBeforeMonth)
   const weekCount = Math.ceil((daysBeforeMonth + daysInMonth) / 7)
   return Array.from({ length: weekCount * 7 }, (_, index) => addDays(gridStart, index))

@@ -52,6 +52,12 @@
   gap: 12px;
 }
 
+.task-detail-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
 @media (max-width: 600px) {
   .task-detail-panel {
     margin: 14px 14px 0;
@@ -60,5 +66,9 @@
 
   .task-detail-actions {
     align-items: flex-start;
+  }
+
+  .task-detail-buttons {
+    justify-content: flex-end;
   }
 }

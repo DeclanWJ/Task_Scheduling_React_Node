@@ -16,14 +16,16 @@ test('weeks start on Sunday and include seven consecutive dates', () => {
   ])
 })
 
-test('month grids cover the complete month in five or six Monday-first weeks', () => {
+test('month grids cover the complete month in four, five, or six Sunday-first weeks', () => {
   const february = getMonthGridDates(new Date(2026, 1, 1))
   const august = getMonthGridDates(new Date(2026, 7, 1))
 
-  assert.equal(february.length, 35)
-  assert.equal(february[0].getDay(), 1)
-  assert.equal(february.at(-1).getDay(), 0)
+  assert.equal(february.length, 28)
+  assert.equal(february[0].getDay(), 0)
+  assert.equal(february.at(-1).getDay(), 6)
   assert.equal(august.length, 42)
+  assert.equal(august[0].getDay(), 0)
+  assert.equal(august.at(-1).getDay(), 6)
 })
 
 test('month navigation clamps dates to the target month', () => {

@@ -255,6 +255,7 @@ function App() {
                 setEditingTask(viewingTask)
                 setViewingTaskId(null)
               }}
+              onToggle={toggleTask}
               onClose={() => setViewingTaskId(null)}
             />
           )}

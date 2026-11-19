@@ -2,8 +2,8 @@ import { addDays, toDateKey } from './calendar.js'
 
 export const GRID_START_MINUTE = 7 * 60
 export const GRID_END_MINUTE = 23 * 60
-const STACK_START_OFFSET_MINUTES = 30
-const MIN_STACKED_DURATION_MINUTES = 30
+const HOUR_HEIGHT = 64
+const STACK_REVEAL_PX = 18
 
 function minuteOfDay(dateTime) {
   const [hour, minute, second = 0] = dateTime.slice(11, 19).split(':').map(Number)
@@ -67,10 +67,13 @@ export function layoutOverlappingEvents(events, mode) {
       return longestFirst.map((event, stackIndex) => ({
         ...event,
         stackIndex,
-        stackOffsetMinutes: Math.min(
-          stackIndex * STACK_START_OFFSET_MINUTES,
-          Math.max(0, event.duration - MIN_STACKED_DURATION_MINUTES),
-        ),
+        stackOffsetPx:
+          longestFirst
+            .slice(0, stackIndex)
+            .filter(
+              (lowerEvent) =>
+                lowerEvent.start < event.end && event.start < lowerEvent.end,
+            ).length * STACK_REVEAL_PX,
         zIndex: stackIndex + 1,
       }))
     }
@@ -91,4 +94,23 @@ export function layoutOverlappingEvents(events, mode) {
       zIndex: 1,
     }))
   })
+}
+
+export function getEventPositionStyle(event, mode) {
+  const style = {
+    top: `${((event.start - GRID_START_MINUTE) * HOUR_HEIGHT) / 60 + (event.stackOffsetPx || 0)}px`,
+    height: `${(event.duration * HOUR_HEIGHT) / 60}px`,
+    zIndex: event.zIndex,
+  }
+
+  if (mode === 'columns') {
+    const laneWidth = 100 / event.laneCount
+    style.left = `calc(${event.lane * laneWidth}% + 2px)`
+    style.width = `calc(${laneWidth}% - 4px)`
+  } else {
+    style.left = '0px'
+    style.width = '100%'
+  }
+
+  return style
 }
