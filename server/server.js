@@ -95,21 +95,14 @@ app.post('/api/tasks', async (req, res) => {
   const seriesId = validation.value.repeat === 'none' ? null : randomUUID();
   const task = await withTransaction(async (client) => {
     await lockUserSchedule(client);
-    const overlappingColors = new Set();
-    for (const occurrence of occurrences) {
-      const overlappingTasks = await client.query(
-        `SELECT color FROM tasks
-         WHERE user_id = $1 AND starts_at < $3 AND ends_at > $2`,
-        [DEFAULT_USER_ID, occurrence.startsAt, occurrence.endsAt],
-      );
-      for (const overlappingTask of overlappingTasks.rows) {
-        overlappingColors.add(overlappingTask.color);
-      }
-    }
-
-    const color = chooseTaskColor([...overlappingColors]);
     let firstTask;
     for (const occurrence of occurrences) {
+      const touchingTasks = await client.query(
+        `SELECT color FROM tasks
+         WHERE user_id = $1 AND starts_at <= $3 AND ends_at >= $2`,
+        [DEFAULT_USER_ID, occurrence.startsAt, occurrence.endsAt],
+      );
+      const color = chooseTaskColor(touchingTasks.rows);
       const result = await client.query(
         `INSERT INTO tasks (user_id, title, description, starts_at, ends_at, color, series_id)
          VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -157,7 +150,7 @@ app.put('/api/tasks/:id', async (req, res) => {
 
     const overlappingTasks = await client.query(
       `SELECT color FROM tasks
-       WHERE user_id = $1 AND id <> $2 AND starts_at < $4 AND ends_at > $3`,
+       WHERE user_id = $1 AND id <> $2 AND starts_at <= $4 AND ends_at >= $3`,
       [DEFAULT_USER_ID, req.params.id, startsAt, endsAt],
     );
     const color = chooseTaskColor(

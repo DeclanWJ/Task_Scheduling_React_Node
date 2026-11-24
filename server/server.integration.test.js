@@ -63,7 +63,7 @@ test('health and date-range task queries reach PostgreSQL', async (t) => {
   assert.deepEqual(returnedIds, [ids[0], ids[1]].sort());
 });
 
-test('creates and reschedules tasks with distinct stored colors for overlaps', async (t) => {
+test('creates and reschedules tasks with distinct stored colors for overlaps and touching tasks', async (t) => {
   const baseUrl = await startServer(t);
   const ids = [];
 
@@ -95,7 +95,7 @@ test('creates and reschedules tasks with distinct stored colors for overlaps', a
     startsAt: '2098-01-02T10:00',
     endsAt: '2098-01-02T11:00',
   });
-  assert.equal(second.color, first.color);
+  assert.notEqual(second.color, first.color);
 
   const rescheduled = await saveTask(`/api/tasks/${second.id}`, {
     title: 'Second task',
